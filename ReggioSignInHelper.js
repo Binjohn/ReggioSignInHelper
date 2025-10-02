@@ -1,7 +1,7 @@
 /**
  * Reggio Sign In Helper
  *
- * @version 0.1
+ * @version 0.2
  */
 
 javascript: (function () {
@@ -16,12 +16,24 @@ javascript: (function () {
     
     // callback function
     function lock(event) {
-        el.focus();
+        if (event?.target?.closest?.("#attendances_newbtn_2in1, #attendances_newinput_2in1")) {
+            // the button or the input field is clicked
+            // closest() includes their children
+            return;
+        } else {
+            // anything else is clicked
+            el.value = "   ";
+            el.focus();
+        }
     }
 })();
 
 /**
  * changelog
+ *
+ * @version 0.2 2025-10-02
+ * + Avoid password autocomplete by set the value to three white spaces.
+ * + Exclude when the button or the input field is clicked
  *
  * @version 0.1 2025-10-01
  */
