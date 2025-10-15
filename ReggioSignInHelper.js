@@ -1,46 +1,78 @@
 /**
  * Reggio Sign In Helper
  *
- * @version 0.3
+ * @version 0.4
  */
 
 javascript: (function () {
-    // #ifndef // prevent re-injection
-    if (typeof(bjtLocked) !== "undefined") { return; }
-    window.bjtLocked = true;
+    // initialization
+    if (typeof(window.bjtInjected) === "undefined") {
+        window.bjtInjected = false;
+    }
     
-    // inject
-    var el = document.getElementById("attendances_newinput_2in1");
-    el.type = "password"; // disable IME
-    lock();
+    // ifndef // prevent re-injection
+    if (window.bjtInjected) { return; }
+    window.bjtInjected = true;
     
-    // highlight to indicate injection state
-    el.style.border = "3px solid limegreen";
-    el.style.borderRight = "none";
-    el.style.backgroundColor = "honeydew";
+    // wait onload event to avoid password autocomplete
+    window.addEventListener("load", bjtOnLoad, { once: true });
+    /* Do not put addEventListener() in the else statement,
+     * there might be a race condition and bjtOnLoad() never run.
+     * Note that DOM rendering is asynchronous! */
+    if (document.readyState === "complete") { bjtOnLoad(); }
     
-    // lock the focus to the input field
-    window.addEventListener("focus", lock);
-    document.addEventListener("visibilitychange", lock);
-    document.addEventListener("click", lock);
-    
-    // callback function
-    function lock(event) {
-        if (event?.target?.closest?.("#attendances_newbtn_2in1, #attendances_newinput_2in1")) {
-            // the button or the input field is clicked
-            // closest() includes their children
-            return;
-        } else {
-            // anything else is clicked
-            el.focus(); // focus last to ensure the cursor blinks
-            el.value = "   "; // avoid password auto-complete
-            el.select(); // select all text
-        }
+    // main
+    function bjtOnLoad() {
+        // wait more to avoid password autocomplete // onload is not enough
+        requestAnimationFrame(function () {
+            var el = document.getElementById("attendances_newinput_2in1");
+            if (el === null) {
+                // injection failed
+                window.bjtInjected = false; // wait for next injection request
+                return;
+            } else {
+                // injection succeed
+                el.type = "password"; // disable IME
+                el.placeholder = "Student/Staff ID";
+                
+                // highlight to indicate injection state
+                el.style.border = "3px solid limegreen";
+                el.style.borderRight = "none";
+                el.style.backgroundColor = "honeydew";
+                
+                // lock the focus to the input field
+                bjtLock();
+                window.addEventListener("focus", bjtLock);
+                document.addEventListener("visibilitychange", bjtLock);
+                document.addEventListener("click", bjtLock);
+            }
+            
+            // callback function
+            function bjtLock(event) {
+                if (!document.contains(el)) { return; } // prevent page modification
+                if (event?.target?.closest?.("#attendances_newbtn_2in1, #attendances_newinput_2in1")) {
+                    // the button or the input field is clicked
+                    // closest() includes their children
+                    return;
+                } else {
+                    // anything else is clicked
+                    el.value = "   "; // fill 3 spaces to avoid password autocomplete
+                    el.select(); // ready to be replaced by ID input
+                    el.focus(); // focus last to avoid password autocomplete
+                    console.log('called');
+                }
+            }
+        });
     }
 })();
 
 /**
  * changelog
+ *
+ * @version 0.4 2025-10-16
+ * x Improves the logic to prevent re-injection.
+ * x Improves the logic to avoid password autocomplete.
+ * + Wait onload event to prevent race condition.
  *
  * @version 0.3 2025-10-03
  * x Selects all text in the input field for intuitiveness.
