@@ -59,7 +59,6 @@ javascript: (function () {
                     el.value = "   "; // fill 3 spaces to avoid password autocomplete
                     el.select(); // ready to be replaced by ID input
                     el.focus(); // focus last to avoid password autocomplete
-                    console.log('called');
                 }
             }
         });
