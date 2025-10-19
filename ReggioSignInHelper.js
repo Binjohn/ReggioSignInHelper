@@ -1,19 +1,10 @@
 /**
  * Reggio Sign In Helper
  *
- * @version 0.4
+ * @version 0.5
  */
 
 javascript: (function () {
-    // initialization
-    if (typeof(window.bjtInjected) === "undefined") {
-        window.bjtInjected = false;
-    }
-    
-    // ifndef // prevent re-injection
-    if (window.bjtInjected) { return; }
-    window.bjtInjected = true;
-    
     // wait onload event to avoid password autocomplete
     window.addEventListener("load", bjtOnLoad, { once: true });
     /* Do not put addEventListener() in the else statement,
@@ -26,26 +17,23 @@ javascript: (function () {
         // wait more to avoid password autocomplete // onload is not enough
         requestAnimationFrame(function () {
             var el = document.getElementById("attendances_newinput_2in1");
-            if (el === null) {
-                // injection failed
-                window.bjtInjected = false; // wait for next injection request
-                return;
-            } else {
-                // injection succeed
-                el.type = "password"; // disable IME
-                el.placeholder = "Student/Staff ID";
-                
-                // highlight to indicate injection state
-                el.style.border = "3px solid limegreen";
-                el.style.borderRight = "none";
-                el.style.backgroundColor = "honeydew";
-                
-                // lock the focus to the input field
-                bjtLock();
-                window.addEventListener("focus", bjtLock);
-                document.addEventListener("visibilitychange", bjtLock);
-                document.addEventListener("click", bjtLock);
-            }
+            if (el === null) { return; } // element not found
+            if (el.type === "password") { return; } // prevent re-injeciton
+            
+            // inject
+            el.type = "password"; // disable IME
+            el.placeholder = "Student/Staff ID";
+            
+            // highlight to indicate injection state
+            el.style.border = "3px solid limegreen";
+            el.style.borderRight = "none";
+            el.style.backgroundColor = "honeydew";
+            
+            // lock the focus to the input field
+            bjtLock();
+            window.addEventListener("focus", bjtLock);
+            document.addEventListener("visibilitychange", bjtLock);
+            document.addEventListener("click", bjtLock);
             
             // callback function
             function bjtLock(event) {
@@ -67,6 +55,10 @@ javascript: (function () {
 
 /**
  * changelog
+ *
+ * @version 0.5 2025-10-19
+ * x Improves the logic to prevent re-injection.
+ * + Allows re-injection if the user goes to another page and back.
  *
  * @version 0.4 2025-10-16
  * x Improves the logic to prevent re-injection.
